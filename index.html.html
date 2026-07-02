@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza & English Trivia | KNN Idiomas América</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Karla:wght@400;500;700&display=swap');
+
+  :root{
+    --crust: #3D2B1F;
+    --crust-light: #5A4130;
+    --tomato: #C1440E;
+    --tomato-dark: #9A360A;
+    --cheese: #F0A83A;
+    --cheese-light: #FFD98A;
+    --basil: #4A7C59;
+    --cream: #FFF8E9;
+    --paper: #FFFCF5;
+    --ink: #2B1B12;
+    --pepperoni: #B4321F;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(240,168,58,0.18), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(74,124,89,0.15), transparent 40%),
+      var(--crust);
+    font-family:'Karla', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 14px;
+  }
+
+  .stage{
+    width:100%;
+    max-width:480px;
+  }
+
+  /* ---------- Header / brand ---------- */
+  .brand{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .brand .eyebrow{
+    display:inline-block;
+    font-family:'Karla',sans-serif;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--cheese-light);
+    background:rgba(0,0,0,0.25);
+    padding:5px 12px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .brand h1{
+    font-family:'Fredoka',sans-serif;
+    font-size:clamp(28px,7vw,38px);
+    color:var(--cream);
+    margin:0;
+    line-height:1.05;
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+  }
+  .brand h1 span{color:var(--cheese);}
+  .brand p{
+    color:rgba(255,248,233,0.7);
+    font-size:14px;
+    margin:8px 0 0;
+  }
+
+  /* ---------- Pizza progress wheel ---------- */
+  .progress-wrap{
+    display:flex;
+    justify-content:center;
+    margin:22px 0 20px;
+  }
+  .pizza-wheel{
+    position:relative;
+    width:110px;
+    height:110px;
+  }
+  .pizza-wheel .ring{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:conic-gradient(var(--cheese) 0deg, var(--cheese) calc(var(--pct,0)*3.6deg), var(--crust-light) calc(var(--pct,0)*3.6deg));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:inset 0 0 0 4px rgba(0,0,0,0.2);
+    transition:background 0.5s ease;
+  }
+  .pizza-wheel .ring::after{
+    content:"";
+    width:76px;
+    height:76px;
+    border-radius:50%;
+    background:var(--paper);
+    box-shadow:inset 0 2px 5px rgba(0,0,0,0.15);
+  }
+  .pizza-wheel .count{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:18px;
+    color:var(--ink);
+  }
+  .pepperoni-dot{
+    position:absolute;
+    width:11px;
+    height:11px;
+    border-radius:50%;
+    background:var(--pepperoni);
+    box-shadow:0 0 0 2px var(--crust);
+    top:50%;
+    left:50%;
+    transform-origin:0 0;
+    opacity:0.25;
+    transition:opacity 0.3s ease, background 0.3s ease;
+  }
+  .pepperoni-dot.done{opacity:1;}
+  .pepperoni-dot.wrong{background:var(--basil);}
+
+  /* ---------- Card (order ticket style) ---------- */
+  .card{
+    background:var(--paper);
+    border-radius:16px;
+    padding:26px 22px 22px;
+    box-shadow:0 14px 30px rgba(0,0,0,0.35);
+    position:relative;
+    min-height:300px;
+  }
+  .card::before, .card::after{
+    content:"";
+    position:absolute;
+    left:0; right:0;
+    height:10px;
+    background:
+      radial-gradient(circle at 8px 0, transparent 8px, var(--crust) 8px) repeat-x;
+    background-size:18px 16px;
+  }
+  .card::before{ top:-9px; transform:rotate(180deg);}
+  .card::after{ bottom:-9px; }
+
+  .tag{
+    display:inline-block;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  .tag.pizza{ background:rgba(193,68,14,0.12); color:var(--tomato-dark); }
+  .tag.english{ background:rgba(74,124,89,0.14); color:var(--basil); }
+
+  .question{
+    font-family:'Fredoka',sans-serif;
+    font-size:19px;
+    font-weight:600;
+    line-height:1.35;
+    margin:0 0 18px;
+    color:var(--ink);
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .option{
+    text-align:left;
+    border:2px solid #EADFC9;
+    background:#fff;
+    border-radius:12px;
+    padding:12px 14px;
+    font-family:'Karla',sans-serif;
+    font-size:15px;
+    font-weight:500;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s, transform .1s, background .15s;
+  }
+  .option:hover:not(:disabled){ border-color:var(--cheese); transform:translateY(-1px); }
+  .option:disabled{ cursor:default; }
+  .option.correct{ background:rgba(74,124,89,0.14); border-color:var(--basil); color:#2f5138; }
+  .option.incorrect{ background:rgba(193,68,14,0.1); border-color:var(--tomato); color:var(--tomato-dark); }
+
+  .feedback{
+    margin-top:16px;
+    font-size:14px;
+    line-height:1.5;
+    padding:12px 14px;
+    border-radius:10px;
+    background:var(--cream);
+    border-left:4px solid var(--cheese);
+    display:none;
+  }
+  .feedback.show{ display:block; }
+  .feedback strong{ color:var(--tomato-dark); }
+
+  .next-btn{
+    margin-top:18px;
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:12px;
+    background:var(--tomato);
+    color:#fff;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    display:none;
+    transition:background .15s, transform .1s;
+  }
+  .next-btn:hover{ background:var(--tomato-dark); transform:translateY(-1px); }
+  .next-btn.show{ display:block; }
+
+  /* ---------- Start screen ---------- */
+  .start-screen, .end-screen{
+    text-align:center;
+  }
+  .start-screen p, .end-screen p{
+    font-size:14.5px;
+    line-height:1.55;
+    color:#5a4636;
+  }
+  .start-btn{
+    margin-top:6px;
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:var(--tomato);
+    color:#fff;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+  }
+  .start-btn:hover{ background:var(--tomato-dark); }
+  .slice-emoji{ font-size:44px; display:block; margin-bottom:6px; }
+
+  /* ---------- End screen ---------- */
+  .end-screen .score-badge{
+    font-family:'Fredoka',sans-serif;
+    font-size:44px;
+    font-weight:700;
+    color:var(--tomato);
+    margin:6px 0 2px;
+  }
+  .end-screen h2{
+    font-family:'Fredoka',sans-serif;
+    font-size:26px;
+    margin:4px 0 10px;
+    color:var(--ink);
+  }
+  .prize-box{
+    margin-top:18px;
+    background:linear-gradient(160deg, var(--cheese-light), var(--cheese));
+    border-radius:14px;
+    padding:18px 16px;
+    border:2px dashed var(--tomato-dark);
+  }
+  .prize-box h3{
+    font-family:'Fredoka',sans-serif;
+    margin:0 0 6px;
+    font-size:16px;
+    color:var(--tomato-dark);
+  }
+  .prize-box p{ color:var(--ink); font-size:13.5px; margin:0 0 14px;}
+  #qrcode{
+    display:flex;
+    justify-content:center;
+    margin:0 auto 14px;
+    background:#fff;
+    padding:10px;
+    border-radius:10px;
+    width:fit-content;
+  }
+  .claim-btn{
+    display:inline-block;
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:10px;
+    background:var(--ink);
+    color:#fff;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    text-decoration:none;
+    box-sizing:border-box;
+  }
+  .claim-btn:hover{ background:#000; }
+  .restart{
+    margin-top:14px;
+    background:none;
+    border:none;
+    color:#8a6f52;
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:12px;
+    color:rgba(255,248,233,0.55);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="brand">
+    <span class="eyebrow">KNN Idiomas América</span>
+    <h1>Pizza <span>&amp;</span> English<br>Trivia 🍕</h1>
+    <p>Curiosidades sobre pizza + English</p>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap" style="display:none;">
+    <div class="pizza-wheel">
+      <div class="ring" id="ring"></div>
+      <div class="count" id="progressCount">0/10</div>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <!-- injected by JS -->
+  </div>
+
+  <footer>Uma ação KNN Idiomas América 📚 &nbsp;|&nbsp; Escaneie, jogue e aprenda</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    type:"pizza",
+    q:"Em que país a pizza nasceu?",
+    options:["França","Itália","Espanha","Grécia"],
+    correct:1,
+    feedback:"A pizza nasceu em Nápoles, na Itália, no século XVIII!"
+  },
+  {
+    type:"english",
+    q:'Como se diz "queijo" em inglês?',
+    options:["Cheese","Chese","Chees","Ques"],
+    correct:0,
+    feedback:'"Cheese" é a palavra certa. Dica: é a mesma palavra que usamos para sorrir em fotos — "say cheese!" 😄'
+  },
+  {
+    type:"pizza",
+    q:"Qual pizza clássica representa as cores da bandeira italiana (tomate, mussarela e manjericão)?",
+    options:["Marinara","Margherita","Napoletana","Quattro Formaggi"],
+    correct:1,
+    feedback:"A Margherita foi criada em 1889 em homenagem à Rainha Margherita da Itália."
+  },
+  {
+    type:"english",
+    q:'Qual palavra significa "massa" (a mistura antes de assar) em inglês?',
+    options:["Sauce","Topping","Dough","Crust"],
+    correct:2,
+    feedback:'"Dough" é a massa crua. Já "crust" é a borda depois de assada!'
+  },
+  {
+    type:"pizza",
+    q:"Qual foi, aproximadamente, o tamanho da maior pizza já feita no mundo, em Roma?",
+    options:["500 m²","1.261 m²","2.000 m²","150 m²"],
+    correct:1,
+    feedback:"A maior pizza do mundo foi feita em Roma, em 2012, com cerca de 1.261 m²!"
+  },
+  {
+    type:"english",
+    q:'Complete em inglês: "I would like a pizza, ___?"',
+    options:["please","thanks","sorry","bye"],
+    correct:0,
+    feedback:'"Please" é usado para pedir algo com educação, como em qualquer pedido de delivery!'
+  },
+  {
+    type:"pizza",
+    q:"Em qual cidade dos EUA surgiu a primeira pizzaria do país, em 1905?",
+    options:["Los Angeles","Miami","Nova York","Chicago"],
+    correct:2,
+    feedback:"A Lombardi's, em Nova York, é considerada a primeira pizzaria dos Estados Unidos."
+  },
+  {
+    type:"english",
+    q:'Qual é a palavra em inglês para "entrega"?',
+    options:["Delivery","Deliver","Delivering","Delivered"],
+    correct:0,
+    feedback:'"Delivery" é o substantivo certo — é literalmente o nome do serviço que traz sua pizza até você!'
+  },
+  {
+    type:"pizza",
+    q:"Qual destes NÃO é um recheio tradicional de pizza?",
+    options:["Pepperoni","Cogumelo (mushroom)","Chocolate","Azeitona (olive)"],
+    correct:2,
+    feedback:"Chocolate não é tradicional — apesar de existirem pizzas doces por aí!"
+  },
+  {
+    type:"english",
+    q:'Como se diz "eu adoro pizza" em inglês?',
+    options:["I love pizza","I hate pizza","I have pizza","I lava pizza"],
+    correct:0,
+    feedback:'"I love pizza" é a forma certa de dizer que você adora pizza!'
+  }
+];
+
+const TOTAL = QUESTIONS.length;
+let current = 0;
+let score = 0;
+let answered = false;
+
+const card = document.getElementById('card');
+const progressWrap = document.getElementById('progressWrap');
+const ring = document.getElementById('ring');
+const progressCount = document.getElementById('progressCount');
+
+function renderStart(){
+  progressWrap.style.display = 'none';
+  card.innerHTML = `
+    <div class="start-screen">
+      <span class="slice-emoji">🍕📖</span>
+      <p>10 perguntas rápidas misturando <strong>curiosidades sobre pizza</strong> e <strong>inglês</strong>. Acerte o máximo possível e ganhe um prêmio especial no final!</p>
+      <button class="start-btn" onclick="startQuiz()">Começar o quiz</button>
+    </div>
+  `;
+}
+
+function startQuiz(){
+  current = 0;
+  score = 0;
+  progressWrap.style.display = 'flex';
+  setupDots();
+  updateProgress();
+  renderQuestion();
+}
+
+function setupDots(){
+  document.querySelectorAll('.pepperoni-dot').forEach(d => d.remove());
+  const wheel = document.querySelector('.pizza-wheel');
+  const radius = 55;
+  for(let i=0;i<TOTAL;i++){
+    const angle = (i / TOTAL) * 2 * Math.PI - Math.PI/2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const dot = document.createElement('div');
+    dot.className = 'pepperoni-dot';
+    dot.id = 'dot-' + i;
+    dot.style.transform = `translate(${x}px, ${y}px)`;
+    wheel.appendChild(dot);
+  }
+}
+
+function updateProgress(){
+  const pct = Math.round((current / TOTAL) * 100);
+  ring.style.setProperty('--pct', pct);
+  progressCount.textContent = `${current}/${TOTAL}`;
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = QUESTIONS[current];
+  const tagLabel = item.type === 'pizza' ? '🍕 Curiosidade' : '🇬🇧 English';
+  const tagClass = item.type === 'pizza' ? 'pizza' : 'english';
+
+  card.innerHTML = `
+    <span class="tag ${tagClass}">${tagLabel}</span>
+    <p class="question">${item.q}</p>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Próxima pergunta →</button>
+  `;
+
+  const optionsWrap = document.getElementById('options');
+  item.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx);
+    optionsWrap.appendChild(btn);
+  });
+
+  document.getElementById('nextBtn').onclick = nextQuestion;
+}
+
+function selectAnswer(idx){
+  if(answered) return;
+  answered = true;
+  const item = QUESTIONS[current];
+  const buttons = document.querySelectorAll('.option');
+  const isCorrect = idx === item.correct;
+
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if(i === item.correct) btn.classList.add('correct');
+    else if(i === idx) btn.classList.add('incorrect');
+  });
+
+  const dot = document.getElementById('dot-' + current);
+  dot.classList.add('done');
+  if(!isCorrect) dot.classList.add('wrong');
+
+  if(isCorrect) score++;
+
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = (isCorrect ? '<strong>Certo! 🎉</strong> ' : '<strong>Quase! </strong>') + item.feedback;
+  fb.classList.add('show');
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion(){
+  current++;
+  updateProgress();
+  if(current >= TOTAL){
+    renderEnd();
+  } else {
+    renderQuestion();
+  }
+}
+
+function renderEnd(){
+  progressCount.textContent = `${TOTAL}/${TOTAL}`;
+  ring.style.setProperty('--pct', 100);
+
+  let msg;
+  if(score >= 9) msg = "Uau, você manda muito bem em pizza E em inglês! 🏆";
+  else if(score >= 6) msg = "Muito bom! Você já sabe bastante sobre os dois assuntos. 👏";
+  else msg = "Boa participação! Bora praticar mais inglês? 😉";
+
+  card.innerHTML = `
+    <div class="end-screen">
+      <span class="slice-emoji">🎉🍕</span>
+      <h2>Congratulations!</h2>
+      <div class="score-badge">${score}/${TOTAL}</div>
+      <p>${msg}</p>
+      <div class="prize-box">
+        <h3>Você ganhou um prêmio!</h3>
+        <p>Aponte a câmera para o QR code ou toque no botão abaixo para resgatar seu prêmio na KNN Idiomas América.</p>
+        <div id="qrcode"></div>
+        <a class="claim-btn" href="https://ddfrrz.github.io/knn-leads/" target="_blank" rel="noopener">Resgatar meu prêmio 🎁</a>
+      </div>
+      <button class="restart" onclick="renderStart()">Jogar novamente</button>
+    </div>
+  `;
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: "https://ddfrrz.github.io/knn-leads/",
+    width: 140,
+    height: 140,
+    colorDark: "#2B1B12",
+    colorLight: "#ffffff"
+  });
+}
+
+renderStart();
+</script>
+
+</body>
+</html>
